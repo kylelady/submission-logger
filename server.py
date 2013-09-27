@@ -102,7 +102,7 @@ def process_submission():
     p = os.popen('/usr/sbin/sendmail -t -i', 'w')
     p.write('\n'.join(email_message))
     status = p.close()
-    print 'mail success' if status is not None else 'mail failed'
+    print 'mail success' if status is None else 'mail failed'
 
     return 'submission archived successfully\n', 200
 
