@@ -59,7 +59,8 @@ files:
 @app.route('/', methods=['POST'])
 def process_submission():
     data = {}
-    for key in ('uniqname', 'compile_out', 'test_out'):
+    #for key in ('uniqname', 'compile_out', 'test_out'):
+    for key in ('uniqname',):
         if key not in request.form:
             logging.error('blargh')
             return make_error_msg(key), 400
@@ -75,6 +76,24 @@ def process_submission():
     email_message = [ email_template.format(uniqname=data['uniqname'],
             timestamp=timestamp), ]
 
+#    compile_path = os.path.join(submit_path, 'compile.out')
+#    with open(compile_path, 'w') as f:
+#        print 'writing compile.out to %s' % compile_path
+#        f.write(data['compile_out'])
+#    email_message.append(string.center('compile.out', 78, '-'))
+#    email_message.append(data['compile_out'])
+#    email_message.append('-' * 78)
+#    email_message.append('')
+#
+#    test_path = os.path.join(submit_path, 'test.out')
+#    with open(test_path, 'w') as f:
+#        print 'writing test.out to %s' % test_path
+#        f.write(data['test_out'])
+#    email_message.append(string.center('test.out', 78, '-'))
+#    email_message.append(data['test_out'])
+#    email_message.append('-' * 78)
+#    email_message.append('')
+
     for file in request.files:
         file_path = os.path.join(submit_path, secure_filename(file))
         print 'saving file %s as %s' % (file, file_path)
@@ -84,16 +103,6 @@ def process_submission():
             email_message.append(f.read())
         email_message.append('-' * 78)
         email_message.append('')
-
-    compile_path = os.path.join(submit_path, 'compile.out')
-    with open(compile_path, 'w') as f:
-        print 'writing compile.out to %s' % compile_path
-        f.write(data['compile_out'])
-
-    test_path = os.path.join(submit_path, 'test.out')
-    with open(test_path, 'w') as f:
-        print 'writing test.out to %s' % test_path
-        f.write(data['test_out'])
 
     print 'done recording; assembling email'
 

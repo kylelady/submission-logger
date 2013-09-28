@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+#exit 0
+
 screen -ls | grep 280logger
 
 if [ "$?" -ne "0" ]; then
