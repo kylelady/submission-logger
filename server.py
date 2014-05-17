@@ -17,8 +17,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ADMINS = ['kylelady@umich.edu']
 if not app.debug:
     import logging
-    from logging import Formatter
-    from logging.handlers import SMTPHandler, SysLogHandler
+    from logging import Formatter, StreamHandler
+    from logging.handlers import SMTPHandler
     mail_handler = SMTPHandler('127.0.0.1',
                                'kylelady@umich.edu',
                                ADMINS, 'submit280 archiver failed!')
@@ -36,21 +36,27 @@ Message:
 '''))
     app.logger.addHandler(mail_handler)
 
-    syslog_handler = SysLogHandler()
-    syslog_handler.setLevel(logging.WARNING)
-    app.logger.addHandler(syslog_handler)
+    #syslog_handler = SysLogHandler()
+    #syslog_handler.setLevel(logging.WARNING)
+    stderr_handler = StreamHandler()
+    stderr_handler.setLevel(logging.DEBUG)
+    app.logger.addHandler(stderr_handler)
 
-archive_directory = '/z/eecs280/archive/f13'
+archive_directory = '/z/eecs280/archive/s14'
 
 def make_error_msg(missing_key):
     return 'ERROR: missing key "%s". Contact kylelady@umich.edu\n' % missing_key
 
 email_template = '''From: kylelady@umich.edu
 Subject: [EECS 280] submission confirmation
-To: {uniqname}@umich.edu
+To: {uniqname}@umich.edu{extra_addr}
 
 uniqname: {uniqname}
+partner: {partner}
 timestamp: {timestamp}
+
+error status:
+{err_status}
 
 files:
 '''
@@ -60,7 +66,7 @@ files:
 def process_submission():
     data = {}
     #for key in ('uniqname', 'compile_out', 'test_out'):
-    for key in ('uniqname',):
+    for key in ('uniqname','err_status','partner'):
         if key not in request.form:
             logging.error('blargh')
             return make_error_msg(key), 400
@@ -73,8 +79,14 @@ def process_submission():
     print 'making path: %s' % submit_path
     os.mkdir(submit_path)
 
+    extra_addr = '';
+    if data['partner'] != 'None':
+        extra_addr = ', {partner}@umich.edu'.format(partner=data['partner'])
+
     email_message = [ email_template.format(uniqname=data['uniqname'],
-            timestamp=timestamp), ]
+            err_status=data['err_status'].decode('string_escape'),
+            timestamp=timestamp, partner=data['partner'],
+            extra_addr=extra_addr), ]
 
 #    compile_path = os.path.join(submit_path, 'compile.out')
 #    with open(compile_path, 'w') as f:
